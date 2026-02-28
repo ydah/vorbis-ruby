@@ -1,4 +1,4 @@
-# vorbis-ruby
+# vorbis-ruby [![Gem Version](https://badge.fury.io/rb/vorbis.svg)](https://badge.fury.io/rb/vorbis) [![Ruby](https://github.com/ydah/vorbis-ruby/actions/workflows/main.yml/badge.svg)](https://github.com/ydah/vorbis-ruby/actions/workflows/main.yml)
 
 Ruby FFI bindings for libvorbis and libvorbisenc. Provides Vorbis audio codec encoding functionality.
 
