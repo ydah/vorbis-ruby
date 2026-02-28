@@ -1,38 +1,117 @@
-# Vorbis
+# vorbis-ruby
 
-TODO: Delete this and the text below, and describe your gem
-
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/vorbis`. To experiment with that code, run `bin/console` for an interactive prompt.
+Ruby FFI bindings for libvorbis and libvorbisenc. Provides Vorbis audio codec encoding functionality.
 
 ## Installation
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+### System Requirements
 
-Install the gem and add to the application's Gemfile by executing:
+libvorbis and libvorbisenc must be installed on your system.
+
+**macOS:**
 
 ```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+brew install libvorbis
 ```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+**Debian / Ubuntu:**
 
 ```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+sudo apt-get install libvorbis-dev
+```
+
+**Fedora / RHEL:**
+
+```bash
+sudo dnf install libvorbis-devel
+```
+
+### Gem Installation
+
+Add to your Gemfile:
+
+```ruby
+gem "vorbis-ruby"
+```
+
+Or install directly:
+
+```bash
+gem install vorbis-ruby
 ```
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+require "vorbis"
 
-## Development
+File.open("output.ogg", "wb") do |f|
+  encoder = Vorbis::Encoder.new(
+    channels: 2,
+    rate: 44100,
+    quality: 0.4,
+    comments: { "ARTIST" => "Test", "TITLE" => "Hello" }
+  )
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+  encoder.write_headers { |data| f.write(data) }
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+  # PCM data as per-channel float arrays (-1.0 to 1.0)
+  samples = [Array.new(1024, 0.0), Array.new(1024, 0.0)]
+  encoder.encode(samples) { |data| f.write(data) }
 
-## Contributing
+  encoder.finish { |data| f.write(data) }
+  encoder.close
+end
+```
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/vorbis.
+## API Reference
+
+### `Vorbis::Encoder`
+
+High-level encoder that manages all Vorbis resources internally.
+
+- `initialize(channels:, rate:, quality: 0.4, comments: {})` — Create encoder with VBR quality (-0.1 to 1.0)
+- `write_headers { |data| }` — Yield OGG header pages
+- `encode(samples) { |data| }` — Encode PCM samples (array of per-channel float arrays) and yield OGG pages
+- `finish { |data| }` — Signal end-of-stream and yield remaining OGG pages
+- `close` — Release all resources
+
+### `Vorbis::Info`
+
+Low-level wrapper for `vorbis_info`.
+
+- `encode_init_vbr(channels:, rate:, quality:)` — Set up VBR encoding
+- `encode_init(channels:, rate:, nominal_bitrate:, max_bitrate: -1, min_bitrate: -1)` — Set up CBR/ABR encoding
+- `channels`, `rate`, `bitrate_nominal` — Accessors
+- `clear` — Release resources
+
+### `Vorbis::Comment`
+
+Low-level wrapper for `vorbis_comment`.
+
+- `add_tag(tag, value)` — Add a comment tag
+- `query(tag, index = 0)` — Query a tag value
+- `query_count(tag)` — Count tags with a given name
+- `vendor` — Get the vendor string
+- `clear` — Release resources
+
+### `Vorbis::DspState`
+
+Low-level wrapper for `vorbis_dsp_state`.
+
+- `headerout(comment)` — Generate 3 header packets
+- `analysis_buffer(samples)` — Get per-channel write buffers
+- `wrote(samples)` — Notify samples written (0 for EOS)
+- `clear` — Release resources
+
+### `Vorbis::Block`
+
+Low-level wrapper for `vorbis_block`.
+
+- `blockout` — Extract a block from DSP state
+- `analysis_and_addblock` — Analyze block and add to bitrate management
+- `flush_packet` — Flush a packet from bitrate management
+- `clear` — Release resources
 
 ## License
 
