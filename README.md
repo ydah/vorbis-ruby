@@ -8,19 +8,19 @@ Ruby FFI bindings for libvorbis and libvorbisenc. Provides Vorbis audio codec en
 
 libvorbis and libvorbisenc must be installed on your system.
 
-**macOS:**
+macOS:
 
 ```bash
 brew install libvorbis
 ```
 
-**Debian / Ubuntu:**
+Debian / Ubuntu:
 
 ```bash
 sudo apt-get install libvorbis-dev
 ```
 
-**Fedora / RHEL:**
+Fedora / RHEL:
 
 ```bash
 sudo dnf install libvorbis-devel
