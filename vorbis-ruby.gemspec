@@ -3,7 +3,7 @@
 require_relative "lib/vorbis/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "vorbis-ruby"
+  spec.name = "vorbis"
   spec.version = Vorbis::VERSION
   spec.authors = ["Yudai Takada"]
   spec.email = ["t.yudai92@gmail.com"]
